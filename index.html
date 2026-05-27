@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Chấm Điểm Phát Âm Tiếng Anh</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .sentence-box {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        button:disabled {
+            background-color: #6c757d;
+        }
+        .status {
+            margin-top: 15px;
+            font-style: italic;
+            color: #666;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Phát Âm Chuẩn Mỹ (en-US)</h1>
+    
+    <div class="sentence-box" id="targetSentence">
+        Beautiful weather we are having today.
+    </div>
+
+    <button id="startBtn">Bắt đầu nói</button>
+    <div class="status" id="statusText">Nhấn nút và cho phép mở micro để đọc.</div>
+
+    <div class="result-box" id="resultBox">
+        <p><strong>Bạn đã nói:</strong> <span id="spokenText">...</span></p>
+        <div class="score" id="scoreText">0%</div>
+    </div>
+</div>
+
+<script>
+    // Câu mẫu để người dùng đọc theo
+    const targetSentence = document.getElementById('targetSentence').innerText.trim();
+    
+    const startBtn = document.getElementById('startBtn');
+    const statusText = document.getElementById('statusText');
+    const resultBox = document.getElementById('resultBox');
+    const spokenText = document.getElementById('spokenText');
+    const scoreText = document.getElementById('scoreText');
+
+    // Kiểm tra xem trình duyệt có hỗ trợ Web Speech API không
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        statusText.innerText = "Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy dùng Google Chrome.";
+        startBtn.disabled = true;
+    } else {
+        const recognition = new SpeechRecognition();
+        
+        // CẤU HÌNH API: Chọn ngôn ngữ tiếng Anh chuẩn Mỹ (en-US)
+        recognition.lang = 'en-US'; 
+        recognition.interimResults = false; // Chỉ trả về kết quả cuối cùng
+        recognition.maxAlternatives = 1;
+
+        // Sự kiện khi bấm nút ghi âm
+        startBtn.addEventListener('click', () => {
+            recognition.start();
+            statusText.innerText = "Đang nghe... Hãy đọc câu phía trên!";
+            startBtn.disabled = true;
+            resultBox.style.display = "none";
+        });
+
+        // Sự kiện khi Google nhận diện xong và trả về kết quả văn bản
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            spokenText.innerText = transcript;
+            
+            // Tiến hành chấm điểm
+            calculateScore(targetSentence, transcript);
+        };
+
+        // Sự kiện khi kết thúc ghi âm (dù thành công hay thất bại)
+        recognition.onspeechend = () => {
+            recognition.stop();
+            startBtn.disabled = false;
+        };
+
+        // Xử lý lỗi (ví dụ không nói gì, hoặc không cho phép Micro)
+        recognition.onerror = (event) => {
+            statusText.innerText = "Có lỗi xảy ra: " + event.error;
+            startBtn.disabled = false;
+        };
+    }
+
+    // Hàm thuật toán chấm điểm bằng cách so sánh 2 chuỗi văn bản
+    function calculateScore(target, spoken) {
+        // Chuẩn hóa chuỗi: viết thường và xóa dấu câu để so sánh chính xác hơn
+        const cleanString = (str) => str.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").trim().split(/\s+/);
+        
+        const wordsTarget = cleanString(target);
+        const wordsSpoken = cleanString(spoken);
+        
+        let matchCount = 0;
+
+        // Đếm số từ khớp nhau
+        wordsTarget.forEach(word => {
+            if (wordsSpoken.includes(word)) {
+                matchCount++;
+                // Xóa từ đã khớp để tránh đếm trùng cho từ giống nhau tiếp theo
+                const index = wordsSpoken.indexOf(word);
+                wordsSpoken.splice(index, 1);
+            }
+        });
+
+        // Tính phần trăm điểm số
+        const scorePercentage = Math.round((matchCount / wordsTarget.length) * 100);
+
+        // Hiển thị kết quả lên giao diện
+        resultBox.style.display = "block";
+        scoreText.innerText = scorePercentage + "%";
+
+        if (scorePercentage >= 80) {
+            statusText.innerText = "Tuyệt vời! Bạn phát âm rất chuẩn.";
+            resultBox.className = "result-box success";
+        } else if (scorePercentage >= 50) {
+            statusText.innerText = "Khá tốt, hãy cố gắng phát âm rõ hơn.";
+            resultBox.className = "result-box success";
+        } else {
+            statusText.innerText = "Chưa chính xác lắm, hãy thử lại nhé!";
+            resultBox.className = "result-box fail";
+        }
+    }
+</script>
+
+</body>
+</html>
