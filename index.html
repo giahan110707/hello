@@ -1,176 +1,54 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Chấm Điểm Phát Âm Tiếng Trung</title>
-    <script src="https://unpkg.com/pinyin-pro"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
+}));
+                // Bắn từ bên phải màn hình sang trái
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } 
+                }));
+            }, 250);
         }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            text-align: center;
-            max-width: 550px;
-            width: 100%;
-        }
-        h1 {
-            color: #de2910; /* Màu đỏ cờ Trung Quốc */
-            margin-bottom: 5px;
-        }
-        .subtitle {
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 14px;
-        }
-        .card {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #e9ecef;
-        }
-        .chinese-text {
-            font-size: 32px;
-            font-weight: bold;
-            color: #212529;
-            letter-spacing: 2px;
-        }
-        .pinyin-text {
-            font-size: 18px;
-            color: #28a745;
-            margin-top: 5px;
-            font-weight: 500;
-        }
-        button {
-            background-color: #de2910;
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(222, 41, 16, 0.3);
-        }
-        button:hover {
-            background-color: #b31e0a;
-            transform: translateY(-2px);
-        }
-        button:disabled {
-            background-color: #6c757d;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-        .status {
-            margin-top: 15px;
-            font-style: italic;
-            color: #6c757d;
-        }
-        .result-box {
-            margin-top: 25px;
-            padding: 20px;
-            border-radius: 12px;
-            display: none;
-            text-align: left;
-        }
-        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
-        .fail { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
-        
-        .score-display {
-            font-size: 40px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .compare-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
-            font-size: 15px;
-        }
-    </style>
-</head>
-<body>
 
-<div class="container">
-    <h1>汉语发音 - Luyện Phát Âm</h1>
-    <div class="subtitle">Ứng dụng chấm điểm Tiếng Trung Phổ Thông (Mandarin)</div>
-    
-    <div class="card">
-        <div class="chinese-text" id="targetChinese">祝你 Chúc mừng sinh nhật</div>
-        <div class="pinyin-text" id="targetPinyin">zhù nǐ shēng rì kuài lè</div>
-    </div>
+        function evaluatePronunciation(target, spoken) {
+            // Loại bỏ khoảng trắng thừa ở đầu/cuối của câu mẫu trước khi chia từ
+            const targetWords = target.trim().split(/\s+/);
+            const spokenWords = spoken.trim().split(/\s+/);
+            
+            let htmlAnalysis = [];
+            let correctCount = 0;
 
-    <button id="startBtn">Bắt đầu nói</button>
-    <div class="status" id="statusText">Nhấn nút, cho phép Micro và đọc to câu chữ Hán phía trên.</div>
+            targetWords.forEach((tWord) => {
+                const cleanedT = cleanWord(tWord);
+                const matchIndex = spokenWords.findIndex(sWord => cleanWord(sWord) === cleanedT);
 
-    <div class="result-box" id="resultBox">
-        <div class="score-display" id="scoreText">0%</div>
-        <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
-        <div class="compare-grid">
-            <div>
-                <strong>Mẫu chuẩn:</strong>
-                <p id="refText" style="margin: 5px 0 0 0; color: #555;"></p>
-            </div>
-            <div>
-                <strong>Bạn đã đọc:</strong>
-                <p id="spokenText" style="margin: 5px 0 0 0; font-weight: bold;"></p>
-            </div>
-        </div>
-    </div>
-</div>
+                if (matchIndex !== -1) {
+                    htmlAnalysis.push(`<span class="correct">${tWord}</span>`);
+                    spokenWords.splice(matchIndex, 1);
+                    correctCount++;
+                } else {
+                    htmlAnalysis.push(`<span class="incorrect">${tWord}</span>`);
+                }
+            });
 
-<script>
-    // Đặt câu hỏi gốc bằng chữ Hán
-    const targetText = "祝你生日快乐"; 
-    
-    // Sử dụng thư viện pinyinPro để tự động tạo Pinyin cho câu mẫu
-    const { pinyin } = pinyinPro;
-    document.getElementById('targetChinese').innerText = targetText;
-    document.getElementById('targetPinyin').innerText = pinyin(targetText);
+            const scorePercentage = Math.round((correctCount / targetWords.length) * 100);
 
-    const startBtn = document.getElementById('startBtn');
-    const statusText = document.getElementById('statusText');
-    const resultBox = document.getElementById('resultBox');
-    const spokenText = document.getElementById('spokenText');
-    const refText = document.getElementById('refText');
-    const scoreText = document.getElementById('scoreText');
+            analysisElem.innerHTML = htmlAnalysis.join(" ");
+            scoreBar.style.width = `${scorePercentage}%`;
+            scoreText.innerText = `${scorePercentage}%`;
 
-    // Khởi tạo Web Speech API từ Google Chrome
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-        statusText.innerText = "Trình duyệt không hỗ trợ nhận diện giọng nói. Hãy mở bằng Google Chrome!";
-        startBtn.disabled = true;
-    } else {
-        const recognition = new SpeechRecognition();
-        
-        // Cấu hình nhận diện: Tiếng Trung Quốc Phổ Thông (Bắc Kinh)
-        recognition.lang = 'zh-CN'; 
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        startBtn.addEventListener('click', () => {
-            recognition.start();
-            statusText.innerText = "🎙️ Đang nghe... Hãy đọc đi nào!";
-            startBtn.disabled = true;
-            resultBox.style.style = "none";
-            resultBox.style.display = "none";
-        });
-
-        recognition.onresult = (event) => {
-            // Chuỗi chữ Hán mà Google nghe được
-            const speechResult = event.results[0][0].transcript;
+            if (scorePercentage > 90) {
+                statusElem.innerText = "Tuyệt vời! Phát âm chuẩn xác.";
+                autoNextStatusElem.classList.remove('hidden');
+                
+                // KÍCH HOẠT HIỆU ỨNG PHÁO HOA
+                triggerFireworks();
+                
+                // Tăng thời gian chờ lên 2.5 giây (2500ms) giúp người dùng thưởng thức pháo hoa trước khi đổi câu
+                autoNextTimeout = setTimeout(() => {
+                    changeSentence();
+                }, 2500);
+            } else {
+                statusElem.innerText = "Chưa đạt chuẩn (>90%). Hãy thử lại câu này nhé!";
+            }
+        }
+    </script>
+</body>
+</html>
