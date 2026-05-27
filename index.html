@@ -3,194 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Chấm Điểm Phát Âm Tiếng Anh</title>
+    <title>App Chấm Điểm Phát Âm Tiếng Trung</title>
+    <script src="https://unpkg.com/pinyin-pro"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            background-color: #f0f2f5;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
         .container {
             background-color: white;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             text-align: center;
-            max-width: 500px;
+            max-width: 550px;
             width: 100%;
         }
         h1 {
-            color: #333;
-            margin-bottom: 20px;
+            color: #de2910; /* Màu đỏ cờ Trung Quốc */
+            margin-bottom: 5px;
         }
-        .sentence-box {
-            font-size: 20px;
-            font-weight: bold;
-            color: #007bff;
-            background-color: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
             margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        .chinese-text {
+            font-size: 32px;
+            font-weight: bold;
+            color: #212529;
+            letter-spacing: 2px;
+        }
+        .pinyin-text {
+            font-size: 18px;
+            color: #28a745;
+            margin-top: 5px;
+            font-weight: 500;
         }
         button {
-            background-color: #28a745;
+            background-color: #de2910;
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 14px 30px;
             font-size: 16px;
-            border-radius: 25px;
+            font-weight: bold;
+            border-radius: 50px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(222, 41, 16, 0.3);
         }
         button:hover {
-            background-color: #218838;
+            background-color: #b31e0a;
+            transform: translateY(-2px);
         }
         button:disabled {
             background-color: #6c757d;
+            box-shadow: none;
+            cursor: not-allowed;
         }
         .status {
             margin-top: 15px;
             font-style: italic;
-            color: #666;
+            color: #6c757d;
         }
         .result-box {
             margin-top: 25px;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 20px;
+            border-radius: 12px;
             display: none;
+            text-align: left;
         }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .fail {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .score {
-            font-size: 24px;
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .fail { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        
+        .score-display {
+            font-size: 40px;
             font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-top: 10px;
+            font-size: 15px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Phát Âm Chuẩn Mỹ (en-US)</h1>
+    <h1>汉语发音 - Luyện Phát Âm</h1>
+    <div class="subtitle">Ứng dụng chấm điểm Tiếng Trung Phổ Thông (Mandarin)</div>
     
-    <div class="sentence-box" id="targetSentence">
-        Beautiful weather we are having today.
+    <div class="card">
+        <div class="chinese-text" id="targetChinese">祝你 Chúc mừng sinh nhật</div>
+        <div class="pinyin-text" id="targetPinyin">zhù nǐ shēng rì kuài lè</div>
     </div>
 
     <button id="startBtn">Bắt đầu nói</button>
-    <div class="status" id="statusText">Nhấn nút và cho phép mở micro để đọc.</div>
+    <div class="status" id="statusText">Nhấn nút, cho phép Micro và đọc to câu chữ Hán phía trên.</div>
 
     <div class="result-box" id="resultBox">
-        <p><strong>Bạn đã nói:</strong> <span id="spokenText">...</span></p>
-        <div class="score" id="scoreText">0%</div>
+        <div class="score-display" id="scoreText">0%</div>
+        <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
+        <div class="compare-grid">
+            <div>
+                <strong>Mẫu chuẩn:</strong>
+                <p id="refText" style="margin: 5px 0 0 0; color: #555;"></p>
+            </div>
+            <div>
+                <strong>Bạn đã đọc:</strong>
+                <p id="spokenText" style="margin: 5px 0 0 0; font-weight: bold;"></p>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // Câu mẫu để người dùng đọc theo
-    const targetSentence = document.getElementById('targetSentence').innerText.trim();
+    // Đặt câu hỏi gốc bằng chữ Hán
+    const targetText = "祝你生日快乐"; 
     
+    // Sử dụng thư viện pinyinPro để tự động tạo Pinyin cho câu mẫu
+    const { pinyin } = pinyinPro;
+    document.getElementById('targetChinese').innerText = targetText;
+    document.getElementById('targetPinyin').innerText = pinyin(targetText);
+
     const startBtn = document.getElementById('startBtn');
     const statusText = document.getElementById('statusText');
     const resultBox = document.getElementById('resultBox');
     const spokenText = document.getElementById('spokenText');
+    const refText = document.getElementById('refText');
     const scoreText = document.getElementById('scoreText');
 
-    // Kiểm tra xem trình duyệt có hỗ trợ Web Speech API không
+    // Khởi tạo Web Speech API từ Google Chrome
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
-        statusText.innerText = "Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy dùng Google Chrome.";
+        statusText.innerText = "Trình duyệt không hỗ trợ nhận diện giọng nói. Hãy mở bằng Google Chrome!";
         startBtn.disabled = true;
     } else {
         const recognition = new SpeechRecognition();
         
-        // CẤU HÌNH API: Chọn ngôn ngữ tiếng Anh chuẩn Mỹ (en-US)
-        recognition.lang = 'en-US'; 
-        recognition.interimResults = false; // Chỉ trả về kết quả cuối cùng
+        // Cấu hình nhận diện: Tiếng Trung Quốc Phổ Thông (Bắc Kinh)
+        recognition.lang = 'zh-CN'; 
+        recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
-        // Sự kiện khi bấm nút ghi âm
         startBtn.addEventListener('click', () => {
             recognition.start();
-            statusText.innerText = "Đang nghe... Hãy đọc câu phía trên!";
+            statusText.innerText = "🎙️ Đang nghe... Hãy đọc đi nào!";
             startBtn.disabled = true;
+            resultBox.style.style = "none";
             resultBox.style.display = "none";
         });
 
-        // Sự kiện khi Google nhận diện xong và trả về kết quả văn bản
         recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            spokenText.innerText = transcript;
-            
-            // Tiến hành chấm điểm
-            calculateScore(targetSentence, transcript);
-        };
-
-        // Sự kiện khi kết thúc ghi âm (dù thành công hay thất bại)
-        recognition.onspeechend = () => {
-            recognition.stop();
-            startBtn.disabled = false;
-        };
-
-        // Xử lý lỗi (ví dụ không nói gì, hoặc không cho phép Micro)
-        recognition.onerror = (event) => {
-            statusText.innerText = "Có lỗi xảy ra: " + event.error;
-            startBtn.disabled = false;
-        };
-    }
-
-    // Hàm thuật toán chấm điểm bằng cách so sánh 2 chuỗi văn bản
-    function calculateScore(target, spoken) {
-        // Chuẩn hóa chuỗi: viết thường và xóa dấu câu để so sánh chính xác hơn
-        const cleanString = (str) => str.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").trim().split(/\s+/);
-        
-        const wordsTarget = cleanString(target);
-        const wordsSpoken = cleanString(spoken);
-        
-        let matchCount = 0;
-
-        // Đếm số từ khớp nhau
-        wordsTarget.forEach(word => {
-            if (wordsSpoken.includes(word)) {
-                matchCount++;
-                // Xóa từ đã khớp để tránh đếm trùng cho từ giống nhau tiếp theo
-                const index = wordsSpoken.indexOf(word);
-                wordsSpoken.splice(index, 1);
-            }
-        });
-
-        // Tính phần trăm điểm số
-        const scorePercentage = Math.round((matchCount / wordsTarget.length) * 100);
-
-        // Hiển thị kết quả lên giao diện
-        resultBox.style.display = "block";
-        scoreText.innerText = scorePercentage + "%";
-
-        if (scorePercentage >= 80) {
-            statusText.innerText = "Tuyệt vời! Bạn phát âm rất chuẩn.";
-            resultBox.className = "result-box success";
-        } else if (scorePercentage >= 50) {
-            statusText.innerText = "Khá tốt, hãy cố gắng phát âm rõ hơn.";
-            resultBox.className = "result-box success";
-        } else {
-            statusText.innerText = "Chưa chính xác lắm, hãy thử lại nhé!";
-            resultBox.className = "result-box fail";
-        }
-    }
-</script>
-
-</body>
-</html>
+            // Chuỗi chữ Hán mà Google nghe được
+            const speechResult = event.results[0][0].transcript;
