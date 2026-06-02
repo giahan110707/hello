@@ -354,4 +354,152 @@
 
     // Hàm cập nhật trạng thái ứng dụng khi đổi từ
     function updateApp() {
-        const currentData = hsk2Words
+        const currentData = hsk2Words[currentIndex];
+        
+        // Render chữ Hán ghép chuẩn Pinyin từng từ
+        let rubyHTML = "";
+        for (let i = 0; i < currentData.hanzi.length; i++) {
+            rubyHTML += `${currentData.hanzi[i]}<rt>${currentData.pinyin[i]}</rt>`;
+        }
+        rubyDisplay.innerHTML = rubyHTML;
+        meaningEl.innerText = currentData.meaning;
+
+        // Cập nhật Tiến trình & Thống kê
+        const currentNum = currentIndex + 1;
+        progressText.innerText = `${currentNum}/20`;
+        progressFill.style.width = `${(currentNum / 20) * 100}%`;
+        passedCountEl.innerText = passedWords.size;
+
+        // Reset trạng thái hiển thị
+        resultBox.style.display = 'none';
+        wordCard.classList.remove('shake', 'bounce');
+        statusEl.innerText = "";
+        btnSpeak.classList.remove('recording');
+
+        // Nút bấm lùi/tiến
+        btnPrev.disabled = currentIndex === 0;
+        btnNext.innerText = currentIndex === 19 ? "Kết thúc" : "Từ tiếp theo 👉";
+    }
+
+    // Thuật toán đo khoảng cách tính phần trăm khớp ngôn từ câu lệnh
+    function similarity(s1, s2) {
+        let longer = s1.toLowerCase(); let shorter = s2.toLowerCase();
+        if (s1.length < s2.length) { longer = s2; shorter = s1; }
+        let longerLength = longer.length;
+        if (longerLength === 0) return 1.0;
+        return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+    }
+    function editDistance(s1, s2) {
+        let costs = [];
+        for (let i = 0; i <= s1.length; i++) {
+            let lastValue = i;
+            for (let j = 0; j <= s2.length; j++) {
+                if (i == 0) costs[j] = j;
+                else if (j > 0) {
+                    let newValue = costs[j - 1];
+                    if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                        newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                    costs[j - 1] = lastValue; lastValue = newValue;
+                }
+            }
+            if (i > 0) costs[s2.length] = lastValue;
+        }
+        return costs[s2.length];
+    }
+
+    // Tạo âm thanh phản hồi hiệu ứng Bíp
+    function playSoundEffect(isSuccess) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        if (isSuccess) {
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            osc.start(); osc.stop(ctx.currentTime + 0.12);
+        } else {
+            osc.frequency.setValueAtTime(220.00, ctx.currentTime); // A3
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            osc.start(); osc.stop(ctx.currentTime + 0.25);
+        }
+    }
+
+    // TÍNH NĂNG 2: Xử lý sự kiện ghi âm luyện nói
+    btnSpeak.addEventListener('click', () => {
+        if (!recognition) return;
+        try {
+            recognition.start();
+            statusEl.innerText = "🔊 Đang ghi âm... Hãy nói ngay!";
+            btnSpeak.classList.add('recording');
+        } catch(e) {
+            recognition.stop();
+        }
+    });
+
+    if (recognition) {
+        recognition.onresult = function(event) {
+            btnSpeak.classList.remove('recording');
+            statusEl.innerText = "";
+            
+            const speechResult = event.results[0][0].transcript;
+            userSpeechEl.innerText = speechResult;
+
+            const targetText = hsk2Words[currentIndex].raw;
+            let matchScore = Math.round(similarity(speechResult, targetText) * 100);
+
+            // TÍNH NĂNG 3: Chấm điểm dựa trên ngưỡng cài đặt độ khó chọn lựa
+            const passingScore = parseInt(diffSelect.value);
+            resultBox.style.display = 'block';
+            resultTitle.innerText = `Chính xác: ${matchScore}%`;
+            
+            wordCard.classList.remove('shake', 'bounce');
+
+            if (matchScore >= passingScore) {
+                resultBox.className = "result-box correct";
+                wordCard.classList.add('bounce');
+                passedWords.add(currentIndex);
+                passedCountEl.innerText = passedWords.size;
+                playSoundEffect(true);
+            } else {
+                resultBox.className = "result-box wrong";
+                wordCard.classList.add('shake');
+                playSoundEffect(false);
+            }
+        };
+
+        recognition.onspeechend = function() {
+            recognition.stop();
+            btnSpeak.classList.remove('recording');
+        };
+
+        recognition.onerror = function() {
+            statusEl.innerText = "❌ Lỗi micro hoặc chưa nghe rõ, hãy thử lại.";
+            btnSpeak.classList.remove('recording');
+        };
+    }
+
+    // Xử lý điều hướng các nút bấm
+    btnNext.addEventListener('click', () => {
+        if (currentIndex < 19) {
+            currentIndex++;
+            updateApp();
+        } else {
+            alert(`🎉 Bạn đã hoàn thành buổi học luyện nói! \nKết quả đạt chuẩn: ${passedWords.size}/20 từ vựng.`);
+            currentIndex = 0;
+            passedWords.clear();
+            updateApp();
+        }
+    });
+
+    btnPrev.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateApp();
+        }
+    });
+
+    // Chạy phần mềm lần đầu tiên
+    updateApp();
+</script>
+</body>
+</html>
