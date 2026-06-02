@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Học Tiếng Trung HSK 2 - Cải Tiến</title>
+    <title>Học Tiếng Trung HSK 2</title>
     <style>
         :root {
             --primary: #4a90e2;
@@ -61,38 +61,28 @@
         }
 
         .word-card {
-            margin: 40px 0;
-            min-height: 160px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            margin-bottom: 30px;
         }
 
-        /* Phong cách hiển thị Ruby (Chữ Hán + Pinyin trên đầu) */
-        ruby {
-            font-size: 64px;
+        .chinese {
+            font-size: 72px;
             font-weight: bold;
             color: #333;
-            ruby-position: over;
-            display: inline-block;
-            margin-bottom: 15px;
+            margin: 10px 0;
+            animation: fadeIn 0.5s ease;
         }
 
-        rt {
-            font-size: 22px;
+        .pinyin {
+            font-size: 24px;
             color: #7f8c8d;
-            font-weight: normal;
             font-style: italic;
-            padding-bottom: 8px;
-            letter-spacing: 2px;
         }
 
         .meaning {
-            font-size: 22px;
+            font-size: 20px;
             color: var(--primary);
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: 5px;
         }
 
         .btn {
@@ -151,6 +141,7 @@
             font-weight: bold;
         }
 
+        /* Hiệu ứng Đúng/Sai */
         .correct {
             background: rgba(46, 204, 113, 0.15);
             border: 2px solid var(--success);
@@ -169,18 +160,272 @@
             margin-top: 30px;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .shake { animation: shake 0.5s ease-in-out; }
+        /* Hiệu ứng rung lắc khi sai */
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-10px); }
             40%, 80% { transform: translateX(10px); }
         }
 
-        .bounce { animation: bounce 0.5s ease-in-out; }
+        /* Hiệu ứng nảy mầm khi đúng */
+        .bounce {
+            animation: bounce 0.5s ease-in-out;
+        }
         @keyframes bounce {
-            0%, 100% { transform: translateY
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app-container">
+    <h1>Luyện Nói Tiếng Trung HSK 2</h1>
+    
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="word-card">
+        <div class="pinyin" id="pinyin">wán</div>
+        <div class="chinese" id="chinese">玩</div>
+        <div class="meaning" id="meaning">Chơi</div>
+    </div>
+
+    <button class="btn btn-mic" id="btn-speak">
+        🎤 Nhấn và Đọc
+    </button>
+
+    <div class="recording-status" id="status"></div>
+
+    <div class="result-box" id="result-box">
+        <div class="score" id="score-text">Độ chính xác: 0%</div>
+        <div style="margin-top: 5px;">Bạn đã nói: <span id="user-speech" style="font-weight:bold;">...</span></div>
+    </div>
+
+    <div class="nav-buttons">
+        <button class="btn" id="btn-prev" style="background:#7f8c8d;" disabled>Lùi lại</button>
+        <button class="btn" id="btn-next">Từ tiếp theo 👉</button>
+    </div>
+</div>
+
+<script>
+    // Danh sách 20 từ vựng HSK 2 (Chữ Hán, Pinyin chuẩn để so sánh, Nghĩa)
+    const hsk2Words = [
+        { hanzi: "唱歌", pinyin: "chànggē", meaning: "Hát" },
+        { hanzi: "跳舞", pinyin: "tiàowǔ", meaning: "Khiêu vũ / Nhảy" },
+        { hanzi: "跑步", pinyin: "pǎobù", meaning: "Chạy bộ" },
+        { hanzi: "游泳", pinyin: "yóuyǒng", meaning: "Bơi lội" },
+        { hanzi: "便宜", pinyin: "piányi", meaning: "Rẻ" },
+        { hanzi: "说话", pinyin: "shuōhuà", meaning: "Nói chuyện" },
+        { hanzi: "准备", pinyin: "zhǔnbèi", meaning: "Chuẩn bị" },
+        { hanzi: "生病", pinyin: "shēngbìng", meaning: "Tạo bệnh / Ốm" },
+        { hanzi: "休息", pinyin: "xiūxi", meaning: "Nghỉ ngơi" },
+        { hanzi: "服务员", pinyin: "fúwùyuán", meaning: "Phục vụ viên" },
+        { hanzi: "高兴", pinyin: "gāoxìng", meaning: "Vui vẻ" },
+        { hanzi: "时间", pinyin: "shíjiān", meaning: "Thời gian" },
+        { hanzi: "手表", pinyin: "shǒubiǎo", meaning: "Đồng hồ đeo tay" },
+        { hanzi: "报纸", pinyin: "bàozhǐ", meaning: "Báo chí" },
+        { hanzi: "鸡蛋", pinyin: "jīdàn", meaning: "Trứng gà" },
+        { hanzi: "西瓜", pinyin: "xīguā", meaning: "Dưa hấu" },
+        { hanzi: "咖啡", pinyin: "kāfēi", meaning: "Cà phê" },
+        { hanzi: "自行车", pinyin: "zìxíngchē", meaning: "Xe đạp" },
+        { hanzi: "船", pinyin: "chuán", meaning: "Thuyền / Tàu" },
+        { hanzi: "晴", pinyin: "qíng", meaning: "Nắng / Trời quang" }
+    ];
+
+    let currentIndex = 0;
+    const container = document.getElementById('app-container');
+    const chineseEl = document.getElementById('chinese');
+    const pinyinEl = document.getElementById('pinyin');
+    const meaningEl = document.getElementById('meaning');
+    const progressEl = document.getElementById('progress');
+    const statusEl = document.getElementById('status');
+    const resultBox = document.getElementById('result-box');
+    const scoreText = document.getElementById('score-text');
+    const userSpeechEl = document.getElementById('user-speech');
+    
+    const btnSpeak = document.getElementById('btn-speak');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+
+    // Khởi tạo Web Speech API
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN'; // Thiết lập nhận diện Tiếng Trung Phổ Thông
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+    } else {
+        alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy thử Google Chrome!");
+        btnSpeak.disabled = true;
+    }
+
+    // Hàm cập nhật từ vựng hiển thị
+    function updateWord() {
+        const currentWord = hsk2Words[currentIndex];
+        chineseEl.innerText = currentWord.hanzi;
+        pinyinEl.innerText = currentWord.pinyin;
+        meaningEl.innerText = currentWord.meaning;
+        
+        // Cập nhật thanh tiến trình
+        const progressPercent = ((currentIndex + 1) / hsk2Words.length) * 100;
+        progressEl.style.width = `${progressPercent}%`;
+
+        // Ẩn hộp kết quả của từ cũ
+        resultBox.style.display = 'none';
+        container.classList.remove('shake', 'bounce');
+
+        // Điều khiển nút Lùi/Tiếp
+        btnPrev.disabled = currentIndex === 0;
+        btnNext.innerText = currentIndex === hsk2Words.length - 1 ? "Hoàn thành 🎉" : "Từ tiếp theo 👉";
+    }
+
+    // Thuật toán so sánh chuỗi tương đối (Dice's Coefficient) để chấm điểm %
+    function similarity(s1, s2) {
+        let longer = s1.toLowerCase();
+        let shorter = s2.toLowerCase();
+        if (s1.length < s2.length) {
+            longer = s2;
+            shorter = s1;
+        }
+        let longerLength = longer.length;
+        if (longerLength === 0) return 1.0;
+        return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+    }
+
+    function editDistance(s1, s2) {
+        let costs = new Array();
+        for (let i = 0; i <= s1.length; i++) {
+            let lastValue = i;
+            for (let j = 0; j <= s2.length; j++) {
+                if (i == 0) costs[j] = j;
+                else {
+                    if (j > 0) {
+                        let newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+            }
+            if (i > 0) costs[s2.length] = lastValue;
+        }
+        return costs[s2.length];
+    }
+
+    // Xử lý Audio tổng hợp khi Đúng/Sai (sử dụng AudioContext tích hợp sẵn không cần file ngoài)
+    function playBeep(isCorrect) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (isCorrect) {
+            osc.frequency.setValueAtTime(523.25, ctx.currentTime); // Nốt C5 (Âm thanh cao, vui)
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.15);
+        } else {
+            osc.frequency.setValueAtTime(196.00, ctx.currentTime); // Nốt G3 (Âm thanh trầm, buồn)
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+        }
+    }
+
+    // Sự kiện khi bấm nút Microphone
+    btnSpeak.addEventListener('click', () => {
+        if (!recognition) return;
+        
+        recognition.start();
+        statusEl.innerText = "🎙️ Đang lắng nghe... Hãy đọc to chữ Hán!";
+        btnSpeak.disabled = true;
+    });
+
+    if (recognition) {
+        recognition.onresult = function(event) {
+            statusEl.innerText = "";
+            btnSpeak.disabled = false;
+
+            const speechResult = event.results[0][0].transcript;
+            userSpeechEl.innerText = speechResult;
+
+            // Lấy từ gốc hiện tại
+            const targetHanzi = hsk2Words[currentIndex].hanzi;
+
+            // Tính điểm tương đồng dựa trên Chữ Hán nhận diện được
+            let finalScore = Math.round(similarity(speechResult, targetHanzi) * 100);
+
+            // Hiển thị hộp kết quả
+            resultBox.style.display = 'block';
+            scoreText.innerText = `Độ chính xác: ${finalScore}%`;
+
+            // Xóa các hiệu ứng cũ
+            container.classList.remove('shake', 'bounce');
+
+            // Đánh giá: Trên 60% coi như Đạt (Đúng)
+            if (finalScore >= 60) {
+                resultBox.className = "result-box correct";
+                container.classList.add('bounce');
+                playBeep(true);
+            } else {
+                resultBox.className = "result-box wrong";
+                container.classList.add('shake');
+                playBeep(false);
+            }
+        };
+
+        recognition.onspeechend = function() {
+            recognition.stop();
+            btnSpeak.disabled = false;
+        };
+
+        recognition.onerror = function(event) {
+            statusEl.innerText = "❌ Không nghe rõ, vui lòng thử lại.";
+            btnSpeak.disabled = false;
+        };
+    }
+
+    // Điều hướng qua lại giữa các từ
+    btnNext.addEventListener('click', () => {
+        if (currentIndex < hsk2Words.length - 1) {
+            currentIndex++;
+            updateWord();
+        } else {
+            alert("Chúc mừng! Bạn đã hoàn thành xuất sắc 20 từ vựng HSK 2 ngày hôm nay! 🎉");
+            currentIndex = 0;
+            updateWord();
+        }
+    });
+
+    btnPrev.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateWord();
+        }
+    });
+
+    // Khởi chạy ứng dụng lần đầu
+    updateWord();
+</script>
+
+</body>
+</html>
