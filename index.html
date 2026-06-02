@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phần Mềm Luyện Nói Tiếng Trung HSK 2</title>
+    <title>Phần Mềm Luyện Nói Tiếng Trung HSK 2 - Hình Ảnh</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -39,7 +39,7 @@
             position: relative;
         }
 
-        /* Thanh trạng thái phía trên */
+        /* Header */
         .app-header {
             display: flex;
             justify-content: space-between;
@@ -93,19 +93,32 @@
             min-width: 40px;
         }
 
+        /* KHU VỰC HÌNH ẢNH MINH HỌA */
+        .image-holder {
+            width: 100%;
+            height: 180px;
+            border-radius: 16px;
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+            transition: background-image 0.4s ease-in-out;
+            border: 1px solid #e2e8f0;
+        }
+
         /* Thẻ từ vựng */
         .word-card {
             background: #f8fafc;
             border: 2px solid #e2e8f0;
             border-radius: 20px;
-            padding: 30px 20px;
+            padding: 25px 20px;
             margin-bottom: 25px;
             position: relative;
             transition: all 0.3s ease;
         }
 
         ruby {
-            font-size: 72px;
+            font-size: 68px;
             font-weight: 700;
             color: #1e293b;
             ruby-position: over;
@@ -123,28 +136,27 @@
         .meaning {
             font-size: 20px;
             color: #475569;
-            margin-top: 15px;
+            margin-top: 10px;
             font-weight: 500;
         }
 
-        /* Nút loa phát âm mẫu */
         .btn-audio {
             background: #e0f2fe;
             border: none;
-            width: 45px;
-            height: 45px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             cursor: pointer;
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            margin-top: 15px;
+            margin-top: 10px;
             transition: background 0.2s;
         }
         .btn-audio:hover { background: #bae6fd; }
-        .btn-audio svg { width: 22px; height: 22px; fill: #0284c7; }
+        .btn-audio svg { width: 20px; height: 20px; fill: #0284c7; }
 
-        /* Vùng điều khiển phát âm */
+        /* Vùng Micro */
         .speak-section {
             margin-bottom: 25px;
         }
@@ -153,8 +165,8 @@
             background: var(--primary);
             color: white;
             border: none;
-            width: 75px;
-            height: 75px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
@@ -172,9 +184,8 @@
             box-shadow: none;
             cursor: not-allowed;
         }
-        .btn-mic svg { width: 32px; height: 32px; fill: white; }
+        .btn-mic svg { width: 30px; height: 30px; fill: white; }
 
-        /* Trạng thái đang ghi âm nhấp nháy */
         .recording {
             background: var(--danger) !important;
             box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
@@ -190,11 +201,11 @@
             font-size: 14px;
             font-weight: 500;
             color: #d97706;
-            margin-top: 10px;
+            margin-top: 8px;
             height: 20px;
         }
 
-        /* Hộp hiển thị kết quả */
+        /* Kết quả */
         .result-box {
             padding: 15px;
             border-radius: 16px;
@@ -209,7 +220,7 @@
         .correct { background: #f0fdf4; border: 2px solid var(--success); color: #166534; }
         .wrong { background: #fef2f2; border: 2px solid var(--danger); color: #991b1b; }
 
-        /* Thanh điều hướng chân trang */
+        /* Footer */
         .nav-footer {
             display: flex;
             justify-content: space-between;
@@ -230,7 +241,6 @@
         .btn-next-active { background: var(--primary); color: white; border: none; }
         .btn-next-active:hover { background: var(--primary-hover); }
 
-        /* Hiệu ứng rung lắc / nảy */
         .shake { animation: shakeAnimate 0.5s ease-in-out; }
         @keyframes shakeAnimate {
             0%, 100% { transform: translateX(0); }
@@ -261,6 +271,8 @@
         <div class="progress-text" id="progress-text">1/20</div>
     </div>
 
+    <div class="image-holder" id="image-display"></div>
+
     <div class="word-card" id="word-card">
         <ruby id="ruby-display"></ruby>
         <div class="meaning" id="meaning"></div>
@@ -288,33 +300,33 @@
 </div>
 
 <script>
+    // Cấu trúc dữ liệu có bổ sung thêm URL hình ảnh (sử dụng ảnh Unsplash trực quan)
     const hsk2Words = [
-        { hanzi: ["唱", "歌"], pinyin: ["chàng", "gē"], raw: "唱歌", meaning: "Hát" },
-        { hanzi: ["跳", "舞"], pinyin: ["tiào", "wǔ"], raw: "跳舞", meaning: "Khiêu vũ / Nhảy" },
-        { hanzi: ["跑", "步"], pinyin: ["pǎo", "bù"], raw: "跑步", meaning: "Chạy bộ" },
-        { hanzi: ["游", "泳"], pinyin: ["yóu", "yǒng"], raw: "游泳", meaning: "Bơi lội" },
-        { hanzi: ["便", "宜"], pinyin: ["pián", "yi"], raw: "便宜", meaning: "Rẻ" },
-        { hanzi: ["说", "话"], pinyin: ["shuō", "huà"], raw: "说话", meaning: "Nói chuyện" },
-        { hanzi: ["准", "备"], pinyin: ["zhǔn", "bèi"], raw: "准备", meaning: "Chuẩn bị" },
-        { hanzi: ["生", "病"], pinyin: ["shēng", "bìng"], raw: "生病", meaning: "Ốm / đổ bệnh" },
-        { hanzi: ["休", "息"], pinyin: ["xiū", "xi"], raw: "休息", meaning: "Nghỉ ngơi" },
-        { hanzi: ["服", "务", "员"], pinyin: ["fú", "wù", "yuán"], raw: "服务员", meaning: "Phục vụ viên" },
-        { hanzi: ["高", "兴"], pinyin: ["gāo", "xìng"], raw: "高兴", meaning: "Vui vẻ" },
-        { hanzi: ["时", "间"], pinyin: ["shí", "jiān"], raw: "时间", meaning: "Thời gian" },
-        { hanzi: ["手", "表"], pinyin: ["shǒu", "biǎo"], raw: "手表", meaning: "Đồng hồ đeo tay" },
-        { hanzi: ["报", "纸"], pinyin: ["bào", "zhǐ"], raw: "报纸", meaning: "Báo chí" },
-        { hanzi: ["鸡", "蛋"], pinyin: ["jī", "dàn"], raw: "鸡蛋", meaning: "Trứng gà" },
-        { hanzi: ["西", "瓜"], pinyin: ["xī", "guā"], raw: "西瓜", meaning: "Dưa hấu" },
-        { hanzi: ["咖", "啡"], pinyin: ["kā", "fēi"], raw: "咖啡", meaning: "Cà phê" },
-        { hanzi: ["自", "行", "车"], pinyin: ["zì", "xíng", "chē"], raw: "自行车", meaning: "Xe đạp" },
-        { hanzi: ["船"], pinyin: ["chuán"], raw: "船", meaning: "Thuyền / Tàu" },
-        { hanzi: ["晴"], pinyin: ["qíng"], raw: "晴", meaning: "Nắng / Trời quang" }
+        { hanzi: ["唱", "歌"], pinyin: ["chàng", "gē"], raw: "唱歌", meaning: "Hát", img: "https://images.unsplash.com/photo-1516280440614-37939bbacd6a?w=500&q=80" },
+        { hanzi: ["跳", "舞"], pinyin: ["tiào", "wǔ"], raw: "跳舞", meaning: "Khiêu vũ / Nhảy", img: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80" },
+        { hanzi: ["跑", "步"], pinyin: ["pǎo", "bù"], raw: "跑步", meaning: "Chạy bộ", img: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=500&q=80" },
+        { hanzi: ["游", "泳"], pinyin: ["yóu", "yǒng"], raw: "游泳", meaning: "Bơi lội", img: "https://images.unsplash.com/photo-1530541930197-ff16ac917b0e?w=500&q=80" },
+        { hanzi: ["便", "宜"], pinyin: ["pián", "yi"], raw: "便宜", meaning: "Rẻ", img: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=500&q=80" },
+        { hanzi: ["说", "话"], pinyin: ["shuō", "huà"], raw: "说话", meaning: "Nói chuyện", img: "https://images.unsplash.com/photo-1522158673376-3c7379b3d75a?w=500&q=80" },
+        { hanzi: ["准", "备"], pinyin: ["zhǔn", "bèi"], raw: "准备", meaning: "Chuẩn bị", img: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=500&q=80" },
+        { hanzi: ["生", "病"], pinyin: ["shēng", "bìng"], raw: "生病", meaning: "Ốm / đổ bệnh", img: "https://images.unsplash.com/photo-1584515901367-f1c2a1268688?w=500&q=80" },
+        { hanzi: ["休", "息"], pinyin: ["xiū", "xi"], raw: "休息", meaning: "Nghỉ ngơi", img: "https://images.unsplash.com/photo-1517594422361-5eeb8ae275a9?w=500&q=80" },
+        { hanzi: ["服", "务", "员"], pinyin: ["fú", "wù", "yuán"], raw: "服务员", meaning: "Phục vụ viên", img: "https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=500&q=80" },
+        { hanzi: ["高", "兴"], pinyin: ["gāo", "xìng"], raw: "高兴", meaning: "Vui vẻ", img: "https://images.unsplash.com/photo-1516624683217-bf02fc6b6b7c?w=500&q=80" },
+        { hanzi: ["时", "间"], pinyin: ["shí", "jiān"], raw: "时间", meaning: "Thời gian", img: "https://images.unsplash.com/photo-1508962914676-134849a727f0?w=500&q=80" },
+        { hanzi: ["手", "表"], pinyin: ["shǒu", "biǎo"], raw: "手表", meaning: "Đồng hồ đeo tay", img: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=500&q=80" },
+        { hanzi: ["报", "纸"], pinyin: ["bào", "zhǐ"], raw: "报纸", meaning: "Báo chí", img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&q=80" },
+        { hanzi: ["鸡", "蛋"], pinyin: ["jī", "dàn"], raw: "鸡蛋", meaning: "Trứng gà", img: "https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=500&q=80" },
+        { hanzi: ["西", "瓜"], pinyin: ["xī", "guā"], raw: "西瓜", meaning: "Dưa hấu", img: "https://images.unsplash.com/photo-1589948184045-a1d49415c9c5?w=500&q=80" },
+        { hanzi: ["咖", "啡"], pinyin: ["kā", "fēi"], raw: "咖啡", meaning: "Cà phê", img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80" },
+        { hanzi: ["自", "行", "车"], pinyin: ["zì", "xíng", "chē"], raw: "自行车", meaning: "Xe đạp", img: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&q=80" },
+        { hanzi: ["船"], pinyin: ["chuán"], raw: "船", meaning: "Thuyền / Tàu", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&q=80" },
+        { hanzi: ["晴"], pinyin: ["qíng"], raw: "晴", meaning: "Nắng / Trời quang", img: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=500&q=80" }
     ];
 
     let currentIndex = 0;
-    let passedWords = new Set(); // Lưu vị trí các từ đã đọc chuẩn đạt yêu cầu
+    let passedWords = new Set();
 
-    // Khai báo các phần tử DOM
     const rubyDisplay = document.getElementById('ruby-display');
     const meaningEl = document.getElementById('meaning');
     const progressFill = document.getElementById('progress');
@@ -322,6 +334,7 @@
     const passedCountEl = document.getElementById('passed-count');
     const diffSelect = document.getElementById('diff-select');
     const wordCard = document.getElementById('word-card');
+    const imageDisplay = document.getElementById('image-display');
     const statusEl = document.getElementById('status');
     const resultBox = document.getElementById('result-box');
     const resultTitle = document.getElementById('result-title');
@@ -332,7 +345,6 @@
     const btnPrev = document.getElementById('btn-prev');
     const btnNext = document.getElementById('btn-next');
 
-    // Khởi tạo Nhận diện giọng nói (Speech Recognition)
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
     if (SpeechRecognition) {
@@ -340,23 +352,23 @@
         recognition.lang = 'zh-CN';
         recognition.interimResults = false;
     } else {
-        alert("Trình duyệt không hỗ trợ Nhận diện giọng nói. Hãy dùng Google Chrome để luyện nói.");
+        alert("Trình duyệt không hỗ trợ Nhận diện giọng nói. Hãy dùng Google Chrome!");
         btnSpeak.disabled = true;
     }
 
-    // TÍNH NĂNG 1: Phát âm thanh mẫu bằng Google Text-to-Speech tích hợp sẵn
+    // Phát âm thanh mẫu
     btnListen.addEventListener('click', () => {
         const textToSpeak = hsk2Words[currentIndex].raw;
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
-        utterance.lang = 'zh-CN'; // Giọng Trung chuẩn Phổ thông
+        utterance.lang = 'zh-CN';
         window.speechSynthesis.speak(utterance);
     });
 
-    // Hàm cập nhật trạng thái ứng dụng khi đổi từ
+    // Cập nhật giao diện toàn phần mềm
     function updateApp() {
         const currentData = hsk2Words[currentIndex];
         
-        // Render chữ Hán ghép chuẩn Pinyin từng từ
+        // 1. Cập nhật chữ Hán & Pinyin
         let rubyHTML = "";
         for (let i = 0; i < currentData.hanzi.length; i++) {
             rubyHTML += `${currentData.hanzi[i]}<rt>${currentData.pinyin[i]}</rt>`;
@@ -364,24 +376,26 @@
         rubyDisplay.innerHTML = rubyHTML;
         meaningEl.innerText = currentData.meaning;
 
-        // Cập nhật Tiến trình & Thống kê
+        // 2. CẬP NHẬT HÌNH ẢNH MỚI
+        imageDisplay.style.backgroundImage = `url('${currentData.img}')`;
+
+        // 3. Cập nhật tiến trình học
         const currentNum = currentIndex + 1;
         progressText.innerText = `${currentNum}/20`;
         progressFill.style.width = `${(currentNum / 20) * 100}%`;
         passedCountEl.innerText = passedWords.size;
 
-        // Reset trạng thái hiển thị
+        // Reset trạng thái báo Đúng/Sai câu cũ
         resultBox.style.display = 'none';
         wordCard.classList.remove('shake', 'bounce');
         statusEl.innerText = "";
         btnSpeak.classList.remove('recording');
 
-        // Nút bấm lùi/tiến
         btnPrev.disabled = currentIndex === 0;
         btnNext.innerText = currentIndex === 19 ? "Kết thúc" : "Từ tiếp theo 👉";
     }
 
-    // Thuật toán đo khoảng cách tính phần trăm khớp ngôn từ câu lệnh
+    // Thuật toán đo khớp ký tự chuỗi
     function similarity(s1, s2) {
         let longer = s1.toLowerCase(); let shorter = s2.toLowerCase();
         if (s1.length < s2.length) { longer = s2; shorter = s1; }
@@ -407,24 +421,24 @@
         return costs[s2.length];
     }
 
-    // Tạo âm thanh phản hồi hiệu ứng Bíp
+    // Hiệu ứng tiếng Bíp báo hiệu kết quả
     function playSoundEffect(isSuccess) {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
         if (isSuccess) {
-            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
             gain.gain.setValueAtTime(0.15, ctx.currentTime);
             osc.start(); osc.stop(ctx.currentTime + 0.12);
         } else {
-            osc.frequency.setValueAtTime(220.00, ctx.currentTime); // A3
+            osc.frequency.setValueAtTime(220.00, ctx.currentTime);
             gain.gain.setValueAtTime(0.2, ctx.currentTime);
             osc.start(); osc.stop(ctx.currentTime + 0.25);
         }
     }
 
-    // TÍNH NĂNG 2: Xử lý sự kiện ghi âm luyện nói
+    // Ghi âm giọng nói
     btnSpeak.addEventListener('click', () => {
         if (!recognition) return;
         try {
@@ -447,7 +461,6 @@
             const targetText = hsk2Words[currentIndex].raw;
             let matchScore = Math.round(similarity(speechResult, targetText) * 100);
 
-            // TÍNH NĂNG 3: Chấm điểm dựa trên ngưỡng cài đặt độ khó chọn lựa
             const passingScore = parseInt(diffSelect.value);
             resultBox.style.display = 'block';
             resultTitle.innerText = `Chính xác: ${matchScore}%`;
@@ -478,13 +491,13 @@
         };
     }
 
-    // Xử lý điều hướng các nút bấm
+    // Sự kiện nút chuyển từ
     btnNext.addEventListener('click', () => {
         if (currentIndex < 19) {
             currentIndex++;
             updateApp();
         } else {
-            alert(`🎉 Bạn đã hoàn thành buổi học luyện nói! \nKết quả đạt chuẩn: ${passedWords.size}/20 từ vựng.`);
+            alert(`🎉 Bạn đã hoàn thành buổi học! \nKết quả đạt chuẩn: ${passedWords.size}/20 từ vựng.`);
             currentIndex = 0;
             passedWords.clear();
             updateApp();
@@ -498,7 +511,7 @@
         }
     });
 
-    // Chạy phần mềm lần đầu tiên
+    // Chạy phần mềm
     updateApp();
 </script>
 </body>
