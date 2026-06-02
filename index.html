@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luyện Nói Tiếng Trung HSK 2</title>
+    <title>Luyện Nói Tiếng Trung HSK 2 - Bản Cải Tiến</title>
     <style>
         :root {
             --primary: #4a90e2;
@@ -14,7 +14,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #e0eafc, #cfdef3);
             color: var(--dark);
             display: flex;
@@ -52,27 +52,28 @@
         }
 
         .word-card {
-            margin: 30px 0;
-            transition: transform 0.3s;
+            margin: 25px 0;
         }
 
         .chinese-char {
-            font-size: 72px;
+            font-size: 64px;
             font-weight: bold;
             color: var(--dark);
             margin: 10px 0;
         }
 
         .pinyin {
-            font-size: 24px;
-            color: #7f8c8d;
-            font-weight: 500;
+            font-size: 26px;
+            color: #2980b9;
+            font-weight: 600;
+            letter-spacing: 1px;
         }
 
         .meaning {
             font-size: 18px;
-            color: #95a5a6;
+            color: #7f8c8d;
             font-style: italic;
+            margin-top: 5px;
         }
 
         .btn {
@@ -86,7 +87,8 @@
             font-weight: bold;
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
-            outline: none;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .btn:hover {
@@ -106,7 +108,6 @@
         }
         .btn-mic:hover {
             background: #ee5253;
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
         }
 
         .listening-effect {
@@ -115,69 +116,102 @@
 
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 107, 107, 0.6); }
+            50% { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 107, 107, 0.6); }
             100% { transform: scale(1); }
         }
 
         .result-box {
-            margin-top: 25px;
-            min-height: 80px;
+            margin-top: 20px;
+            min-height: 70px;
         }
 
         .score {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: bold;
             margin-bottom: 5px;
         }
 
         .user-speech {
-            font-size: 16px;
+            font-size: 15px;
             color: #7f8c8d;
         }
 
-        /* Hiệu ứng Đúng/Sai */
+        /* Chế độ giả lập phòng hờ khi không có HTTPS */
+        .fallback-zone {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f1f2f6;
+            border-radius: 10px;
+            border: 1px dashed #ced6e0;
+        }
+        .fallback-title {
+            font-size: 13px;
+            color: #57606f;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .btn-group-fallback {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-test {
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            flex: 1;
+        }
+        .btn-good { background: #2ed573; }
+        .btn-bad { background: #ff4757; }
+
+        /* Lớp hiệu ứng Đúng / Sai phủ lên màn hình */
         .feedback {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 80px;
+            font-size: 40px;
             font-weight: bold;
-            z-index: 10;
+            z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
         }
 
         .feedback.correct {
-            background: rgba(46, 196, 182, 0.9);
+            background: rgba(46, 196, 182, 0.95);
             color: white;
             opacity: 1;
         }
 
         .feedback.wrong {
-            background: rgba(231, 29, 54, 0.9);
+            background: rgba(231, 29, 54, 0.95);
             color: white;
             opacity: 1;
+        }
+        
+        .feedback-sub {
+            font-size: 20px;
+            margin-top: 10px;
+            font-weight: normal;
         }
 
         .nav-buttons {
             display: flex;
             justify-content: space-between;
             margin-top: 20px;
+            gap: 10px;
         }
         
         .btn-nav {
-            background: #ecf0f1;
+            background: #f1f2f6;
             color: var(--dark);
-            padding: 10px 20px;
+            padding: 10px 15px;
             font-size: 14px;
+            box-shadow: none;
         }
-        .btn-nav:hover { background: #e2e8f0; }
+        .btn-nav:hover { background: #dfe4ea; transform: none; }
     </style>
 </head>
 <body>
@@ -190,62 +224,66 @@
         </div>
 
         <div class="word-card">
-            <div id="pinyin" class="pinyin">bàba</div>
-            <div id="character" class="chinese-char">爸爸</div>
-            <div id="meaning" class="meaning">Bố, cha</div>
+            <div id="pinyin" class="pinyin">jīchǎng</div>
+            <div id="character" class="chinese-char">机场</div>
+            <div id="meaning" class="meaning">Sân bay</div>
         </div>
 
-        <button id="mic-btn" class="btn btn-mic">Bật Mic và Nói</button>
+        <button id="mic-btn" class="btn btn-mic">🎙️ Bật Mic và Đọc Pinyin</button>
 
         <div class="result-box">
             <div id="score-text" class="score"></div>
             <div id="speech-text" class="user-speech"></div>
         </div>
 
+        <div class="fallback-zone">
+            <div class="fallback-title">⚠️ Nếu duyệt web không nhận mic (thiếu HTTPS), thử bằng 2 nút này:</div>
+            <div class="btn-group-fallback">
+                <button onclick="simulateResult(95)" class="btn btn-test btn-good">Giả lập Đọc Đúng (95%)</button>
+                <button onclick="simulateResult(30)" class="btn btn-test btn-bad">Giả lập Đọc Sai (30%)</button>
+            </div>
+        </div>
+
         <div class="nav-buttons">
-            <button id="prev-btn" class="btn btn-nav">Trước đó</button>
-            <button id="next-btn" class="btn btn-nav">Bỏ qua / Tiếp</button>
+            <button id="prev-btn" class="btn btn-nav">◀ Từ trước</button>
+            <button id="next-btn" class="btn btn-nav">Từ tiếp theo ▶</button>
         </div>
     </div>
 
 <script>
-    // Danh sách 20 từ vựng HSK 2 tiêu biểu (gồm Chữ hán, Pinyin không dấu để so sánh, Pinyin hiển thị và Nghĩa)
+    // 20 từ vựng HSK 2
     const hsk2Words = [
-        { char: "🚝 机场", pinyinDisplay: "jīchǎng", match: "机场", mean: "Sân bay" },
-        { char: "☕ 咖啡", pinyinDisplay: "kāfēi", match: "咖啡", mean: "Cà phê" },
-        { char: "🚲 自行车", pinyinDisplay: "zìxíngchē", match: "自行车", mean: "Xe đạp" },
-        { char: "🏃 跑步", pinyinDisplay: "pǎobù", match: "跑步", mean: "Chạy bộ" },
-        { char: "🔢 件", pinyinDisplay: "jiàn", match: "件", mean: "Lượng từ (quần áo, sự việc)" },
-        { char: "🛏️ 房间", pinyinDisplay: "fángjiān", match: "房间", mean: "Phòng" },
-        { char: "👨‍🏫 老师", pinyinDisplay: "lǎoshī", match: "老师", mean: "Thầy cô giáo" },
-        { char: "🏥 医院", pinyinDisplay: "yīyuàn", match: "医院", mean: "Bệnh viện" },
-        { char: "🥛 牛奶", pinyinDisplay: "niúnǎi", match: "牛奶", mean: "Sữa bò" },
-        { char: "🐟 鱼", pinyinDisplay: "yú", match: "鱼", mean: "Cá" },
-        { char: "🧪 便宜", pinyinDisplay: "piányi", match: "便宜", mean: "Rẻ" },
-        { char: "⏰ 时间", pinyinDisplay: "shíjiān", match: "时间", mean: "Thời gian" },
-        { char: "❓ 为什么", pinyinDisplay: "wèishénme", match: "为什么", mean: "Tại sao" },
-        { char: "📰 报纸", pinyinDisplay: "bàozhǐ", match: "报纸", mean: "Báo chí" },
-        { char: "🚶 旅游", pinyinDisplay: "lǚyóu", match: "旅游", mean: "Du lịch" },
-        { char: "🤝 帮助", pinyinDisplay: "bāngzhù", match: "帮助", mean: "Giúp đỡ" },
-        { char: "🏢 公司", pinyinDisplay: "gōngsī", match: "公司", mean: "Công ty" },
-        { char: "🥚 鸡蛋", pinyinDisplay: "jīdàn", match: "鸡蛋", mean: "Trứng gà" },
-        { char: "🍉 西瓜", pinyinDisplay: "xīguā", match: "西瓜", mean: "Dưa hấu" },
-        { char: "🛌 休息", pinyinDisplay: "xiūxi", match: "休息", mean: "Nghỉ ngơi" }
+        { char: "机场", pinyin: "jīchǎng", mean: "Sân bay" },
+        { char: "咖啡", pinyin: "kāfēi", mean: "Cà phê" },
+        { char: "自行车", pinyin: "zìxíngchē", mean: "Xe đạp" },
+        { char: "跑步", pinyin: "pǎobù", mean: "Chạy bộ" },
+        { char: "房间", pinyin: "fángjiān", mean: "Phòng" },
+        { char: "医院", pinyin: "yīyuàn", mean: "Bệnh viện" },
+        { char: "牛奶", pinyin: "niúnǎi", mean: "Sữa bò" },
+        { char: "鱼", pinyin: "yú", mean: "Cá" },
+        { char: "便宜", pinyin: "piányi", mean: "Rẻ" },
+        { char: "时间", pinyin: "shíjiān", mean: "Thời gian" },
+        { char: "为什么", pinyin: "wèishénme", mean: "Tại sao" },
+        { char: "报纸", pinyin: "bàozhǐ", mean: "Báo chí" },
+        { char: "旅游", pinyin: "lǚyóu", mean: "Du lịch" },
+        { char: "帮助", pinyin: "bāngzhù", mean: "Giúp đỡ" },
+        { char: "公司", pinyin: "gōngsī", mean: "Công ty" },
+        { char: "鸡蛋", pinyin: "jīdàn", mean: "Trứng gà" },
+        { char: "西瓜", pinyin: "xīguā", mean: "Dưa hấu" },
+        { char: "休息", pinyin: "xiūxi", mean: "Nghỉ ngơi" },
+        { char: "说话", pinyin: "shuōhuà", mean: "Nói chuyện" },
+        { char: "👋 再见", pinyin: "zàijiàn", mean: "Tạm biệt" }
     ];
 
     let currentIndex = 0;
-    
-    // Khởi tạo Speech Recognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
     
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
-        recognition.lang = 'zh-CN'; // Nhận diện tiếng Trung chuẩn (Mandarin)
+        recognition.lang = 'zh-CN'; 
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
-    } else {
-        alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy dùng Google Chrome hoặc MS Edge!");
     }
 
     // DOM Elements
@@ -260,52 +298,38 @@
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
 
-    // Hiển thị từ vựng hiện tại
     function updateWord() {
         const word = hsk2Words[currentIndex];
         characterEl.textContent = word.char;
-        pinyinEl.textContent = word.pinyinDisplay;
+        pinyinEl.textContent = word.pinyin;
         meaningEl.textContent = word.mean;
-        
-        // Cập nhật thanh tiến trình
         progressBar.style.width = `${((currentIndex + 1) / hsk2Words.length) * 100}%`;
-        
-        // Reset text chấm điểm
         scoreText.textContent = "";
         speechText.textContent = "";
     }
 
-    // Thuật toán Levenshtein tính độ tương đồng của chuỗi (Chấm điểm %)
+    // Thuật toán đo độ chính xác chuỗi kí tự
     function getSimilarity(s1, s2) {
-        let longer = s1;
-        let shorter = s2;
-        if (s1.length < s2.length) {
-            longer = s2;
-            shorter = s1;
-        }
+        let longer = s1; let shorter = s2;
+        if (s1.length < s2.length) { longer = s2; shorter = s1; }
         let longerLength = longer.length;
-        if (longerLength === 0) {
-            return 100;
-        }
+        if (longerLength === 0) return 100;
         return Math.round((longerLength - editDistance(longer, shorter)) / longerLength * 100);
     }
 
     function editDistance(s1, s2) {
-        s1 = s1.toLowerCase();
-        s2 = s2.toLowerCase();
-        let costs = new Array();
+        s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
+        let costs = [];
         for (let i = 0; i <= s1.length; i++) {
             let lastValue = i;
             for (let j = 0; j <= s2.length; j++) {
-                if (i == 0)
-                    costs[j] = j;
+                if (i == 0) costs[j] = j;
                 else {
                     if (j > 0) {
                         let newValue = costs[j - 1];
                         if (s1.charAt(i - 1) != s2.charAt(j - 1))
                             newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                        costs[j - 1] = lastValue;
-                        lastValue = newValue;
+                        costs[j - 1] = lastValue; lastValue = newValue;
                     }
                 }
             }
@@ -314,97 +338,97 @@
         return costs[s2.length];
     }
 
-    // Sự kiện Click Mic
-    micBtn.addEventListener('click', () => {
-        if (!recognition) return;
-        recognition.start();
-        micBtn.textContent = "Đang nghe... Nói đi bạn!";
-        micBtn.classList.add('listening-effect');
-        micBtn.disabled = true;
-    });
+    // Sự kiện Mic thực tế
+    if (recognition) {
+        micBtn.addEventListener('click', () => {
+            try {
+                recognition.start();
+                micBtn.textContent = "🎙️ Đang nghe... Hãy nói!";
+                micBtn.classList.add('listening-effect');
+                micBtn.disabled = true;
+            } catch (e) {
+                alert("Không thể mở Mic. Hãy chắc chắn bạn cấp quyền Mic hoặc trang web đang chạy trên môi trường HTTPS an toàn.");
+            }
+        });
 
-    // Xử lý khi nhận diện xong giọng nói
-    recognition.onresult = function(event) {
-        micBtn.textContent = "Bật Mic và Nói";
+        recognition.onresult = function(event) {
+            resetMicButton();
+            const resultText = event.results[0][0].transcript;
+            const cleanResult = resultText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()？。，！]/g,"");
+            const targetWord = hsk2Words[currentIndex].char;
+            
+            const score = getSimilarity(cleanResult, targetWord);
+            
+            speechText.textContent = `Hệ thống nghe được: "${cleanResult}"`;
+            processScoreResult(score);
+        };
+
+        recognition.onspeechend = () => { resetMicButton(); recognition.stop(); };
+        recognition.onerror = () => { resetMicButton(); alert("Lỗi nhận diện hoặc không nghe thấy gì. Hãy thử lại!"); };
+    } else {
+        micBtn.addEventListener('click', () => {
+            alert("Trình duyệt này không hỗ trợ Speech API hoặc bạn đang mở file offline. Hãy dùng các nút Giả lập bên dưới để test hiệu ứng nhé!");
+        });
+    }
+
+    function resetMicButton() {
+        micBtn.textContent = "🎙️ Bật Mic và Đọc Pinyin";
         micBtn.classList.remove('listening-effect');
         micBtn.disabled = false;
+    }
 
-        // Lấy kết quả chữ Hán hệ thống nghe được
-        const resultText = event.results[0][0].transcript;
-        // Loại bỏ các dấu câu nếu có
-        const cleanResult = resultText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()？。，！]/g,"");
-        
-        const targetWord = hsk2Words[currentIndex].match;
-        
-        // Tính điểm phần trăm chính xác dựa trên chữ Hán nhận diện được
-        const score = getSimilarity(cleanResult, targetWord);
-
-        speechText.textContent = `Bạn đã nói: "${cleanResult}"`;
+    // Hàm xử lý hiển thị điểm số & hiệu ứng
+    function processScoreResult(score) {
         scoreText.textContent = `Độ chính xác: ${score}%`;
-
-        // Định hình hiệu ứng Đúng (>60%) hoặc Sai
         if (score >= 60) {
             scoreText.style.color = "var(--success)";
-            showFeedback(true);
+            showFeedback(true, score);
         } else {
             scoreText.style.color = "var(--danger)";
-            showFeedback(false);
+            showFeedback(false, score);
         }
-    };
+    }
 
-    // Xử lý lỗi hoặc khi người dùng không nói gì
-    recognition.onspeechend = function() {
-        recognition.stop();
-        micBtn.textContent = "Bật Mic và Nói";
-        micBtn.classList.remove('listening-effect');
-        micBtn.disabled = false;
-    };
-
-    recognition.onerror = function(event) {
-        micBtn.textContent = "Bật Mic và Nói";
-        micBtn.classList.remove('listening-effect');
-        micBtn.disabled = false;
-        alert("Không nhận diện được giọng nói, vui lòng thử lại!");
-    };
-
-    // Hiển thị hiệu ứng Flash Đúng/Sai nhấp nháy toàn màn hình thẻ
-    function showFeedback(isCorrect) {
+    // Hàm kích hoạt hiệu ứng flash Đúng/Sai
+    function showFeedback(isCorrect, score) {
         if (isCorrect) {
-            feedbackLayer.textContent = "✓ Đúng rồi!";
+            feedbackLayer.innerHTML = `✓ Chính xác!<div class="feedback-sub">Đạt ${score}% - Tự chuyển từ mới</div>`;
             feedbackLayer.className = "feedback correct";
         } else {
-            feedbackLayer.textContent = "✗ Thử lại xem!";
+            feedbackLayer.innerHTML = `✗ Chưa đúng!<div class="feedback-sub">Chỉ đạt ${score}% - Hãy thử lại</div>`;
             feedbackLayer.className = "feedback wrong";
         }
 
-        // Tự động ẩn hiệu ứng sau 1.2 giây và tự động qua từ mới nếu đúng
         setTimeout(() => {
             feedbackLayer.className = "feedback";
-            if (isCorrect && currentIndex < hsk2Words.length - 1) {
-                currentIndex++;
-                updateWord();
+            if (isCorrect) {
+                if (currentIndex < hsk2Words.length - 1) {
+                    currentIndex++;
+                    updateWord();
+                } else {
+                    alert("🎉 Xuất sắc! Bạn đã hoàn thành toàn bộ 20 từ vựng HSK 2!");
+                    currentIndex = 0;
+                    updateWord();
+                }
             }
-        }, 1200);
+        }, 1500);
     }
 
-    // Điều hướng các nút bấm
+    // Hàm bổ sung: Giả lập kết quả (Cứu cánh khi môi trường chặn Mic)
+    function simulateResult(mockScore) {
+        speechText.textContent = mockScore >= 60 ? `[Giả lập] Bạn đọc chuẩn từ: ${hsk2Words[currentIndex].char}` : `[Giả lập] Bạn đọc sai từ này`;
+        processScoreResult(mockScore);
+    }
+
+    // Điều hướng tiến lùi từ vựng
     nextBtn.addEventListener('click', () => {
-        if (currentIndex < hsk2Words.length - 1) {
-            currentIndex++;
-            updateWord();
-        } else {
-            alert("Chúc mừng! Bạn đã hoàn thành hết 20 từ vựng HSK 2.");
-        }
+        if (currentIndex < hsk2Words.length - 1) { currentIndex++; updateWord(); }
     });
-
     prevBtn.addEventListener('click', () => {
-        if (currentIndex > 0) {
-            currentIndex--;
-            updateWord();
-        }
+        if (currentIndex > 0) { currentIndex--; updateWord(); }
     });
 
-    // Khởi chạy ứng dụng lần đầu
+    // Khởi chạy
     updateWord();
 </script>
 
